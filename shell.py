@@ -3,7 +3,7 @@ import jok
 while True:
     text = input('jok > ')
 
-    if text.lower() == "stop":
+    if text.strip().lower() == "stop":
         
         break
 
