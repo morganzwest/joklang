@@ -141,7 +141,9 @@ class Token:
 	
 	def __repr__(self):
 
-		if self.value: return f'{self.type}:{self.value}'
+		if self.value:
+			
+			return f'{self.type}:{self.value}'
 
 		return f'{self.type}'
 
@@ -222,7 +224,9 @@ class Lexer:
 
 			if self.current_char == '.':
 
-				if dot_count == 1: break
+				if dot_count == 1:
+					
+					break
                     
 				dot_count += 1
 				num_str += '.'
@@ -359,7 +363,9 @@ class Parser:
 			res.register(self.advance())
 			factor = res.register(self.factor())
 
-			if res.error: return res
+			if res.error:
+				
+				return res
 
 			return res.success(UnaryOpNode(tok, factor))
 		
@@ -374,7 +380,9 @@ class Parser:
 			res.register(self.advance())
 			expr = res.register(self.expr())
 
-			if res.error: return res
+			if res.error:
+				
+				return res
 
 			if self.current_tok.type == TT_RPAREN:
 
@@ -409,14 +417,18 @@ class Parser:
 		res = ParseResult()
 		left = res.register(func())
 
-		if res.error: return res
+		if res.error:
+			
+			return res
 
 		while self.current_tok.type in ops:
 			op_tok = self.current_tok
 			res.register(self.advance())
 			right = res.register(func())
 
-			if res.error: return res
+			if res.error:
+				
+				return res
 
 			left = BinOpNode(left, op_tok, right)
 
@@ -434,7 +446,9 @@ class RTResult:
 
 	def register(self, res):
 
-		if res.error: self.error = res.error
+		if res.error:
+			
+			self.error = res.error
 
 		return res.value
 
@@ -506,6 +520,7 @@ class Number:
 			return Number(self.value / other.value).set_context(self.context), None
 
 	def __repr__(self):
+
 		return str(self.value)
 
 #######################################
@@ -549,11 +564,15 @@ class Interpreter:
 		res = RTResult()
 		left = res.register(self.visit(node.left_node, context))
 
-		if res.error: return res
+		if res.error:
+			
+			return res
 
 		right = res.register(self.visit(node.right_node, context))
 
-		if res.error: return res
+		if res.error:
+			
+			return res
 
 		if node.op_tok.type == TT_PLUS:
 
@@ -588,7 +607,9 @@ class Interpreter:
             self.visit(node.node, context)
         )
 
-		if res.error: return res
+		if res.error:
+			
+			return res
 
 		error = None
 
@@ -601,6 +622,7 @@ class Interpreter:
 			return res.failure(error)
 
 		else:
+
 			return res.success(
                 number.set_pos(node.pos_start, node.pos_end)
             )
@@ -614,13 +636,17 @@ def run(fn, text):
 	lexer = Lexer(fn, text)
 	tokens, error = lexer.make_tokens()
 
-	if error: return None, error
+	if error:
+		
+		return None, error
 	
 	# Generate AST
 	parser = Parser(tokens)
 	ast = parser.parse()
 
-	if ast.error: return None, ast.error
+	if ast.error:
+		
+		return None, ast.error
 
 	# Run program
 	interpreter = Interpreter()
