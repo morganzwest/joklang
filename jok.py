@@ -48,7 +48,13 @@ class RTError(Error):
 
 	def __init__(self, pos_start, pos_end, details, context):
 
-		super().__init__(pos_start, pos_end, 'Runtime Error', details)
+		super().__init__(
+			pos_start,
+			pos_end,
+			'Runtime Error',
+			details
+		)
+
 		self.context = context
 
 	def as_string(self):
@@ -225,7 +231,6 @@ class Lexer:
 			if self.current_char == '.':
 
 				if dot_count == 1:
-					
 					break
                     
 				dot_count += 1
@@ -302,7 +307,8 @@ class ParseResult:
 
 		if isinstance(res, ParseResult):
 
-			if res.error: self.error = res.error     
+			if res.error:
+				self.error = res.error
 
 			return res.node
 
@@ -334,6 +340,7 @@ class Parser:
 
 	def advance(self, ):
 		self.tok_idx += 1
+
 		if self.tok_idx < len(self.tokens):
 
 			self.current_tok = self.tokens[self.tok_idx]
@@ -364,7 +371,6 @@ class Parser:
 			factor = res.register(self.factor())
 
 			if res.error:
-				
 				return res
 
 			return res.success(UnaryOpNode(tok, factor))
@@ -381,7 +387,6 @@ class Parser:
 			expr = res.register(self.expr())
 
 			if res.error:
-				
 				return res
 
 			if self.current_tok.type == TT_RPAREN:
@@ -418,7 +423,6 @@ class Parser:
 		left = res.register(func())
 
 		if res.error:
-			
 			return res
 
 		while self.current_tok.type in ops:
@@ -427,7 +431,6 @@ class Parser:
 			right = res.register(func())
 
 			if res.error:
-				
 				return res
 
 			left = BinOpNode(left, op_tok, right)
@@ -447,7 +450,6 @@ class RTResult:
 	def register(self, res):
 
 		if res.error:
-			
 			self.error = res.error
 
 		return res.value
@@ -477,8 +479,8 @@ class Number:
 	def set_pos(self, pos_start=None, pos_end=None):
 
 		self.pos_start = pos_start
-
 		self.pos_end = pos_end
+
 		return self
 
 	def set_context(self, context=None):
@@ -520,7 +522,6 @@ class Number:
 			return Number(self.value / other.value).set_context(self.context), None
 
 	def __repr__(self):
-
 		return str(self.value)
 
 #######################################
@@ -542,7 +543,6 @@ class Context:
 class Interpreter:
 	def visit(self, node, context):
 		method_name = f'visit_{type(node).__name__}'
-
 		method = getattr(self, method_name, self.no_visit_method)
 
 		return method(node, context)
@@ -556,38 +556,45 @@ class Interpreter:
 	def visit_NumberNode(self, node, context):
 
 		return RTResult().success(
-			Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end)
+			Number(node.tok.value).set_context(context).set_pos(
+				node.pos_start, node.pos_end
+			)
 		)
 
 	def visit_BinOpNode(self, node, context):
 
 		res = RTResult()
-		left = res.register(self.visit(node.left_node, context))
+		left = res.register(
+			self.visit(
+				node.left_node,
+				context
+			)
+		)
 
 		if res.error:
 			
 			return res
 
-		right = res.register(self.visit(node.right_node, context))
+		right = res.register(
+			self.visit(
+				node.right_node,
+				context
+			)
+		)
 
 		if res.error:
-			
 			return res
 
 		if node.op_tok.type == TT_PLUS:
-
 			result, error = left.added_to(right)
 
 		elif node.op_tok.type == TT_MINUS:
-
 			result, error = left.subbed_by(right)
 
 		elif node.op_tok.type == TT_MUL:
-
 			result, error = left.multed_by(right)
 
 		elif node.op_tok.type == TT_DIV:
-
 			result, error = left.dived_by(right)
 
 
@@ -597,7 +604,12 @@ class Interpreter:
 
 		else:
 
-			return res.success(result.set_pos(node.pos_start, node.pos_end))
+			return res.success(
+				result.set_pos(
+					node.pos_start,
+					node.pos_end
+				)
+			)
 
 	def visit_UnaryOpNode(self, node, context):
 
@@ -608,17 +620,14 @@ class Interpreter:
         )
 
 		if res.error:
-			
 			return res
 
 		error = None
 
 		if node.op_tok.type == TT_MINUS:
-
 			number, error = number.multed_by(Number(-1))
 
 		if error:
-
 			return res.failure(error)
 
 		else:
@@ -637,7 +646,6 @@ def run(fn, text):
 	tokens, error = lexer.make_tokens()
 
 	if error:
-		
 		return None, error
 	
 	# Generate AST
@@ -645,7 +653,6 @@ def run(fn, text):
 	ast = parser.parse()
 
 	if ast.error:
-		
 		return None, ast.error
 
 	# Run program
